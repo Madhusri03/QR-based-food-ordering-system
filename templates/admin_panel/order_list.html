@@ -1,0 +1,128 @@
+{% extends 'admin_panel/base.html' %}
+
+{% block active_orders %}active{% endblock %}
+
+{% block admin_content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h2 fw-bold text-dark">Order History</h1>
+</div>
+
+<!-- Search & Filtering Bar -->
+<div class="card glass-card p-3 mb-4">
+    <form method="GET" class="row g-3 align-items-end">
+        <div class="col-md-5">
+            <label for="search" class="form-label fw-semibold">Search by Table Number</label>
+            <div class="input-group">
+                <span class="input-group-text bg-white"><i class="bi bi-search text-secondary"></i></span>
+                <input type="text" name="q" id="search" value="{{ search_query|default:'' }}" class="form-control" placeholder="e.g. 1, VIP">
+            </div>
+        </div>
+        
+        <div class="col-md-4">
+            <label for="status" class="form-label fw-semibold">Filter by Status</label>
+            <select name="status" id="status" class="form-select">
+                <option value="" {% if not status_filter %}selected{% endif %}>All Statuses</option>
+                {% for code, label in status_choices %}
+                    <option value="{{ code }}" {% if status_filter == code %}selected{% endif %}>{{ label }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        
+        <div class="col-md-3 d-flex gap-2">
+            <button type="submit" class="btn btn-primary-custom w-100 fw-bold">
+                Apply Filters
+            </button>
+            <a href="{% url 'admin_panel:order_list' %}" class="btn btn-light border w-100">
+                Reset
+            </a>
+        </div>
+    </form>
+</div>
+
+<!-- Orders Table -->
+<div class="card glass-card p-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h5 class="fw-bold m-0"><i class="bi bi-receipt text-success"></i> Customer Orders</h5>
+        <span class="badge bg-secondary fs-6">{{ orders|length }} Orders Found</span>
+    </div>
+
+    {% if orders %}
+        <div class="table-responsive">
+            <table class="table table-hover align-middle">
+                <thead class="table-light">
+                    <tr>
+                        <th>Order ID</th>
+                        <th>Table</th>
+                        <th>Date & Time</th>
+                        <th>Total Amount</th>
+                        <th>Status</th>
+                        <th class="text-end">Details</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for order in orders %}
+                        <tr>
+                            <td><span class="fw-bold text-dark">#{{ order.id }}</span></td>
+                            <td>Table {{ order.table.table_number }}</td>
+                            <td>{{ order.created_at|date:"Y-m-d H:i" }} <small class="text-muted">({{ order.created_at|timesince }} ago)</small></td>
+                            <td><strong class="text-primary">₹{{ order.total_amount }}</strong></td>
+                            <td>
+                                <span class="order-badge {% if order.status == 'Pending' %}badge-pending{% elif order.status == 'Preparing' %}badge-preparing{% elif order.status == 'Ready' %}badge-ready{% elif order.status == 'Served' %}badge-served{% endif %}">
+                                    {{ order.status }}
+                                </span>
+                            </td>
+                            <td class="text-end">
+                                <a href="{% url 'admin_panel:order_detail' order.id %}" class="btn btn-sm btn-outline-primary">
+                                    <i class="bi bi-eye"></i> View Summary
+                                </a>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+        </div>
+
+        <!-- Pagination Navigation -->
+        {% if orders.has_other_pages %}
+            <nav aria-label="Order history pagination" class="mt-4">
+                <ul class="pagination justify-content-center">
+                    {% if orders.has_previous %}
+                        <li class="page-item">
+                            <a class="page-link text-primary" href="?page={{ orders.previous_page_number }}{% if search_query %}&q={{ search_query }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}" aria-label="Previous">
+                                <span aria-hidden="true">&laquo; Previous</span>
+                            </a>
+                        </li>
+                    {% else %}
+                        <li class="page-item disabled"><span class="page-link">&laquo; Previous</span></li>
+                    {% endif %}
+
+                    {% for num in orders.paginator.page_range %}
+                        {% if orders.number == num %}
+                            <li class="page-item active"><span class="page-link bg-primary border-primary">{{ num }}</span></li>
+                        {% elif num > orders.number|add:'-3' and num < orders.number|add:'3' %}
+                            <li class="page-item">
+                                <a class="page-link text-primary" href="?page={{ num }}{% if search_query %}&q={{ search_query }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}">{{ num }}</a>
+                            </li>
+                        {% endif %}
+                    {% endfor %}
+
+                    {% if orders.has_next %}
+                        <li class="page-item">
+                            <a class="page-link text-primary" href="?page={{ orders.next_page_number }}{% if search_query %}&q={{ search_query }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}" aria-label="Next">
+                                <span aria-hidden="true">Next &raquo;</span>
+                            </a>
+                        </li>
+                    {% else %}
+                        <li class="page-item disabled"><span class="page-link">Next &raquo;</span></li>
+                    {% endif %}
+                </ul>
+            </nav>
+        {% endif %}
+    {% else %}
+        <div class="text-center py-5 text-secondary">
+            <i class="bi bi-receipt-cutoff fs-1"></i>
+            <h5 class="mt-3 fw-bold">No orders found</h5>
+            <p class="text-secondary mb-0">Try adjusting your search query or status filter.</p>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

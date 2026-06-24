@@ -1,0 +1,245 @@
+{% extends 'base.html' %}
+
+{% block title %}Track Order #{{ order.id }} - Lumaro Cafe & Bistro{% endblock %}
+
+{% block extra_css %}
+<style>
+    .step-indicator {
+        position: relative;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-top: 40px;
+        margin-bottom: 40px;
+    }
+    .step-line {
+        position: absolute;
+        top: 25px;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background-color: #e9ecef;
+        z-index: 1;
+        transition: all 0.5s ease;
+    }
+    .step-line-progress {
+        position: absolute;
+        top: 25px;
+        left: 0;
+        height: 4px;
+        background-color: var(--primary-color);
+        z-index: 2;
+        width: 0%;
+        transition: width 0.5s ease;
+    }
+    .step-node {
+        position: relative;
+        z-index: 3;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+    .step-icon {
+        width: 54px;
+        height: 54px;
+        border-radius: 50%;
+        background-color: #ffffff;
+        border: 3px solid #e9ecef;
+        color: var(--text-muted);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+        transition: all 0.4s ease;
+        box-shadow: var(--shadow-sm);
+    }
+    .step-node.active .step-icon {
+        border-color: var(--primary-color);
+        color: var(--primary-color);
+        background-color: #fff4f0;
+        transform: scale(1.1);
+        box-shadow: 0 0 15px rgba(255, 107, 53, 0.3);
+    }
+    .step-node.completed .step-icon {
+        border-color: var(--success-color);
+        color: #ffffff;
+        background-color: var(--success-color);
+    }
+    .step-label {
+        margin-top: 10px;
+        font-weight: 600;
+        font-size: 0.85rem;
+        color: var(--text-muted);
+        transition: color 0.4s ease;
+    }
+    .step-node.active .step-label {
+        color: var(--primary-color);
+    }
+    .step-node.completed .step-label {
+        color: var(--success-color);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container my-5 px-3 animate-fade-in">
+    <div class="row justify-content-center">
+        <div class="col-md-8 text-center">
+            
+            <div class="d-flex align-items-center justify-content-center mb-3">
+                <i class="bi bi-compass text-primary me-2 fs-3"></i>
+                <h3 class="fw-bold m-0">Order Tracking</h3>
+            </div>
+            <p class="text-secondary mb-4">Tracking status of <strong>Order #{{ order.id }}</strong> for <strong>Table {{ order.table.table_number }}</strong></p>
+            
+            <div class="card glass-card p-4 mb-4">
+                <div class="card-body">
+                    <h5 class="fw-bold mb-4">Live Status: <span id="status-badge" class="order-badge">...</span></h5>
+                    
+                    <!-- Stepper Progress Tracker -->
+                    <div class="step-indicator">
+                        <div class="step-line"></div>
+                        <div class="step-line-progress" id="step-progress-bar"></div>
+                        
+                        <!-- Step: Pending -->
+                        <div class="step-node" id="step-Pending">
+                            <div class="step-icon">
+                                <i class="bi bi-clock-history"></i>
+                            </div>
+                            <span class="step-label">Pending</span>
+                        </div>
+                        
+                        <!-- Step: Preparing -->
+                        <div class="step-node" id="step-Preparing">
+                            <div class="step-icon">
+                                <i class="bi bi-fire"></i>
+                            </div>
+                            <span class="step-label">Preparing</span>
+                        </div>
+                        
+                        <!-- Step: Ready -->
+                        <div class="step-node" id="step-Ready">
+                            <div class="step-icon">
+                                <i class="bi bi-bag-check"></i>
+                            </div>
+                            <span class="step-label">Ready</span>
+                        </div>
+                        
+                        <!-- Step: Served -->
+                        <div class="step-node" id="step-Served">
+                            <div class="step-icon">
+                                <i class="bi bi-egg-fried"></i>
+                            </div>
+                            <span class="step-label">Served</span>
+                        </div>
+                    </div>
+                    
+                    <p class="text-secondary mt-4" id="status-desc">We have received your order and are checking details.</p>
+                </div>
+            </div>
+            
+            <div class="d-flex justify-content-center gap-3">
+                <a href="{% url 'customer:menu' %}" class="btn btn-outline-custom">
+                    <i class="bi bi-arrow-left"></i> Order More
+                </a>
+                <a href="/" class="btn btn-outline-secondary">
+                    <i class="bi bi-house-door"></i> Home
+                </a>
+            </div>
+            
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    const orderId = "{{ order.id }}";
+    const statusURL = "{% url 'customer:order_track' order.id %}";
+    
+    // Status metadata mapping
+    const statusData = {
+        'Pending': {
+            progress: 0,
+            badgeClass: 'badge-pending',
+            desc: 'Your order is in the kitchen queue. Staff will begin preparing it shortly.',
+            steps: ['Pending']
+        },
+        'Preparing': {
+            progress: 33.33,
+            badgeClass: 'badge-preparing',
+            desc: 'Our chefs are currently preparing your fresh meal. Hang tight!',
+            steps: ['Pending', 'Preparing']
+        },
+        'Ready': {
+            progress: 66.66,
+            badgeClass: 'badge-ready',
+            desc: 'Your food is cooked and plated! Waiter is bringing it to your table.',
+            steps: ['Pending', 'Preparing', 'Ready']
+        },
+        'Served': {
+            progress: 100,
+            badgeClass: 'badge-served',
+            desc: 'Your order has been served. Enjoy your meal!',
+            steps: ['Pending', 'Preparing', 'Ready', 'Served']
+        }
+    };
+    
+    function updateStatusUI(status) {
+        const data = statusData[status];
+        if (!data) return;
+        
+        // 1. Update Badge text & color
+        const badge = document.getElementById('status-badge');
+        badge.innerText = status;
+        badge.className = 'order-badge ' + data.badgeClass;
+        
+        // 2. Update Status description text
+        document.getElementById('status-desc').innerText = data.desc;
+        
+        // 3. Update Progress bar width
+        document.getElementById('step-progress-bar').style.width = data.progress + '%';
+        
+        // 4. Update Steps states (Active vs Completed vs Default)
+        const orderOfSteps = ['Pending', 'Preparing', 'Ready', 'Served'];
+        
+        orderOfSteps.forEach((step) => {
+            const el = document.getElementById('step-' + step);
+            if (!el) return;
+            
+            // Remove previous classes
+            el.classList.remove('active', 'completed');
+            
+            if (step === status) {
+                el.classList.add('active');
+            } else if (data.steps.includes(step)) {
+                el.classList.add('completed');
+            }
+        });
+    }
+
+    // Polling function
+    function checkOrderStatus() {
+        fetch(statusURL, {
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            updateStatusUI(data.status);
+            // If served, we can slow down or stop polling
+            if (data.status === 'Served') {
+                clearInterval(pollingInterval);
+            }
+        })
+        .catch(err => console.error("Error fetching order status:", err));
+    }
+    
+    // Initial call
+    updateStatusUI("{{ order.status }}");
+    
+    // Poll status every 5 seconds
+    const pollingInterval = setInterval(checkOrderStatus, 1000);
+</script>
+{% endblock %}

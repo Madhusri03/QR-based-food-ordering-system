@@ -1,0 +1,78 @@
+{% extends 'admin_panel/base.html' %}
+
+{% block active_categories %}active{% endblock %}
+
+{% block admin_content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h2 fw-bold text-dark">Category Management</h1>
+</div>
+
+<div class="row g-4">
+    <!-- Left Column: Add Category Form -->
+    <div class="col-md-4">
+        <div class="card glass-card p-4">
+            <h5 class="fw-bold mb-3"><i class="bi bi-plus-circle text-primary"></i> Add Category</h5>
+            
+            <form method="POST" action="{% url 'admin_panel:category_add' %}">
+                {% csrf_token %}
+                <div class="mb-3">
+                    <label for="category_name" class="form-label fw-semibold">Category Name</label>
+                    <input type="text" name="name" id="category_name" class="form-control" required placeholder="e.g. Starters, Desserts">
+                </div>
+                <button type="submit" class="btn btn-primary-custom w-100 fw-bold">
+                    <i class="bi bi-check2"></i> Save Category
+                </button>
+            </form>
+        </div>
+    </div>
+    
+    <!-- Right Column: Category List Table -->
+    <div class="col-md-8">
+        <div class="card glass-card p-4">
+            <h5 class="fw-bold mb-3"><i class="bi bi-tags text-success"></i> Food Categories</h5>
+            
+            {% if categories %}
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Category Name</th>
+                                <th class="text-center">Dishes Count</th>
+                                <th class="text-end">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for cat in categories %}
+                                <tr>
+                                    <td><span class="fw-bold">{{ cat.name }}</span></td>
+                                    <td class="text-center"><span class="badge bg-secondary px-3 py-1.5 rounded-pill">{{ cat.food_count }}</span></td>
+                                    <td class="text-end">
+                                        <div class="d-flex justify-content-end gap-2">
+                                            <a href="{% url 'admin_panel:category_edit' cat.id %}" class="btn btn-sm btn-outline-primary" title="Edit name">
+                                                <i class="bi bi-pencil"></i> Edit
+                                            </a>
+                                            
+                                            <!-- Delete Form -->
+                                            <form method="POST" action="{% url 'admin_panel:category_delete' cat.id %}" onsubmit="return confirm('Are you sure you want to delete category \'{{ cat.name }}\'? All dishes in this category will also be deleted.');">
+                                                {% csrf_token %}
+                                                <button type="submit" class="btn btn-sm btn-outline-danger" title="Delete category">
+                                                    <i class="bi bi-trash"></i> Delete
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="text-center py-5 text-secondary">
+                    <i class="bi bi-tag fs-1"></i>
+                    <p class="mt-2 mb-0">No categories created yet.</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

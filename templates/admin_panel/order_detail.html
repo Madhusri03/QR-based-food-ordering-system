@@ -1,0 +1,106 @@
+{% extends 'admin_panel/base.html' %}
+
+{% block active_orders %}active{% endblock %}
+
+{% block admin_content %}
+<div class="d-flex align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <a href="{% url 'admin_panel:order_list' %}" class="btn btn-sm btn-outline-custom me-3"><i class="bi bi-arrow-left"></i> History</a>
+    <h1 class="h2 fw-bold text-dark m-0">Order Details</h1>
+</div>
+
+<div class="row">
+    <!-- Left Column: Details Receipt -->
+    <div class="col-lg-8 mb-4">
+        <div class="card glass-card p-4">
+            <h5 class="fw-bold mb-3"><i class="bi bi-receipt-cutoff text-success"></i> Items Ordered</h5>
+            
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Dish Name</th>
+                            <th>Quantity</th>
+                            <th>Price At Order Time</th>
+                            <th class="text-end">Subtotal</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in order_items %}
+                            <tr>
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        {% if item.food.image %}
+                                            <img src="{{ item.food.image.url }}" alt="{{ item.food.name }}" class="rounded me-2" style="width: 40px; height: 35px; object-fit: cover;">
+                                        {% endif %}
+                                        <span class="fw-bold">{{ item.food.name|default:"Deleted Item" }}</span>
+                                    </div>
+                                </td>
+                                <td><span class="badge bg-secondary px-2.5 py-1.5 fs-7">x{{ item.quantity }}</span></td>
+                                <td>₹{{ item.price }}</td>
+                                <td class="text-end fw-semibold text-dark">₹{{ item.subtotal }}</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                    <tfoot>
+                        <tr class="fs-5">
+                            <td colspan="3" class="fw-bold text-end border-0">Total Amount:</td>
+                            <td class="text-end fw-extrabold text-primary border-0">₹{{ order.total_amount }}</td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Right Column: Order Information and Metadata -->
+    <div class="col-lg-4">
+        <div class="card glass-card p-4">
+            <h5 class="fw-bold mb-3"><i class="bi bi-info-circle text-primary"></i> Order Summary</h5>
+            
+            <ul class="list-group list-group-flush mb-4">
+                <li class="list-group-item d-flex justify-content-between px-0 py-2.5">
+                    <span class="text-secondary">Order ID:</span>
+                    <strong class="text-dark">#{{ order.id }}</strong>
+                </li>
+                <li class="list-group-item d-flex justify-content-between px-0 py-2.5">
+                    <span class="text-secondary">Table Number:</span>
+                    <strong class="text-primary">Table {{ order.table.table_number }}</strong>
+                </li>
+                <li class="list-group-item d-flex justify-content-between px-0 py-2.5">
+                    <span class="text-secondary">Created At:</span>
+                    <span class="text-dark" style="font-size: 0.9rem;">{{ order.created_at|date:"Y-m-d H:i" }}</span>
+                </li>
+                <li class="list-group-item d-flex justify-content-between px-0 py-2.5">
+                    <span class="text-secondary">Current Status:</span>
+                    <span class="order-badge {% if order.status == 'Pending' %}badge-pending{% elif order.status == 'Preparing' %}badge-preparing{% elif order.status == 'Ready' %}badge-ready{% elif order.status == 'Served' %}badge-served{% endif %}">
+                        {{ order.status }}
+                    </span>
+                </li>
+            </ul>
+            
+            <!-- Quick update form if not served yet -->
+            {% if order.status != 'Served' %}
+                <div class="card bg-light border-0 p-3" style="border-radius: var(--radius-sm);">
+                    <h6 class="fw-bold mb-2">Change Order Status</h6>
+                    <form method="POST" action="{% url 'kitchen:update_status' order.id %}">
+                        {% csrf_token %}
+                        
+                        <div class="mb-3">
+                            <select name="status" class="form-select border-2">
+                                <option value="Pending" {% if order.status == 'Pending' %}selected{% endif %}>Pending</option>
+                                <option value="Preparing" {% if order.status == 'Preparing' %}selected{% endif %}>Preparing</option>
+                                <option value="Ready" {% if order.status == 'Ready' %}selected{% endif %}>Ready</option>
+                                <option value="Served" {% if order.status == 'Served' %}selected{% endif %}>Served</option>
+                            </select>
+                        </div>
+                        <button type="submit" class="btn btn-primary-custom w-100 py-2 fw-bold btn-sm">
+                            Apply Change
+                        </button>
+                    </form>
+                </div>
+            {% endif %}
+            
+        </div>
+    </div>
+</div>
+{% endblock %}

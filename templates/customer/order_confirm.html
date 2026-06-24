@@ -1,0 +1,54 @@
+{% extends 'base.html' %}
+
+{% block title %}Order Confirmed - Lumaro Cafe & Bistro{% endblock %}
+
+{% block content %}
+<div class="container my-5 px-3 animate-fade-in text-center">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card glass-card p-4">
+                <div class="card-body">
+                    <div class="mb-4">
+                        <i class="bi bi-check-circle-fill text-success" style="font-size: 4.5rem;"></i>
+                    </div>
+                    
+                    <h3 class="fw-bold mb-2">Order Confirmed!</h3>
+                    <p class="text-secondary mb-4">Your order has been sent to the kitchen and is now in preparation queue.</p>
+                    
+                    <div class="bg-light p-3 rounded mb-4 text-start" style="border: 1px solid rgba(0,0,0,0.05);">
+                        <div class="row mb-2">
+                            <span class="col-6 text-secondary">Order ID:</span>
+                            <strong class="col-6 text-end">#{{ order.id }}</strong>
+                        </div>
+                        <div class="row mb-2">
+                            <span class="col-6 text-secondary">Table:</span>
+                            <strong class="col-6 text-end">Table {{ order.table.table_number }}</strong>
+                        </div>
+                        <div class="row mb-2">
+                            <span class="col-6 text-secondary">Date & Time:</span>
+                            <span class="col-6 text-end text-truncate-1" style="font-size: 0.9rem;">{{ order.created_at|date:"Y-m-d H:i" }}</span>
+                        </div>
+                        <hr class="my-2">
+                        <div class="row fs-5">
+                            <span class="col-6 fw-bold">Total Paid/Due:</span>
+                            <strong class="col-6 text-end text-primary">₹{{ order.total_amount }}</strong>
+                        </div>
+                    </div>
+                    
+                    <div class="d-grid gap-3">
+                        <a href="{% url 'customer:order_track' order.id %}" class="btn btn-primary-custom py-2.5 fw-bold fs-6">
+                            <i class="bi bi-compass me-2"></i> Track Order Status
+                        </a>
+                        <a href="{% url 'customer:menu' %}" class="btn btn-outline-custom py-2.5 fw-bold">
+                            Order More Items
+                        </a>
+                        <a href="/" class="btn btn-outline-secondary py-2.5">
+                            <i class="bi bi-house-door"></i> Back to Home
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

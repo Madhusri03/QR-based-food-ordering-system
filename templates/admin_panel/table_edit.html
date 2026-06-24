@@ -1,0 +1,36 @@
+{% extends 'admin_panel/base.html' %}
+
+{% block active_tables %}active{% endblock %}
+
+{% block admin_content %}
+<div class="d-flex align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <a href="{% url 'admin_panel:table_list' %}" class="btn btn-sm btn-outline-custom me-3"><i class="bi bi-arrow-left"></i> Tables</a>
+    <h1 class="h2 fw-bold text-dark m-0">Edit Table</h1>
+</div>
+
+<div class="row justify-content-start">
+    <div class="col-md-6">
+        <div class="card glass-card p-4">
+            <h5 class="fw-bold mb-3"><i class="bi bi-pencil-square text-primary"></i> Rename Table Number</h5>
+            
+            <form method="POST">
+                {% csrf_token %}
+                <div class="mb-3">
+                    <label for="table_number" class="form-label fw-semibold">Table Number / Name</label>
+                    <input type="text" name="table_number" id="table_number" value="{{ table.table_number }}" class="form-control border-2" required placeholder="e.g. 1">
+                    <div class="form-text text-secondary mt-1">Warning: Changing the table number will regenerate the QR code, making the old printed QR code obsolete.</div>
+                </div>
+                
+                <div class="d-flex gap-2">
+                    <button type="submit" class="btn btn-primary-custom fw-bold px-4">
+                        Update & Regenerate QR
+                    </button>
+                    <a href="{% url 'admin_panel:table_list' %}" class="btn btn-light border-1">
+                        Cancel
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

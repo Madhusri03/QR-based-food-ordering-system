@@ -1,0 +1,105 @@
+{% extends 'base.html' %}
+
+{% block title %}Your Cart - Lumaro Cafe & Bistro{% endblock %}
+
+{% block content %}
+<div class="container my-4 px-3 animate-fade-in">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="d-flex align-items-center mb-4">
+                <a href="{% url 'customer:menu' %}" class="btn btn-sm btn-outline-custom me-2"><i class="bi bi-arrow-left"></i> Menu</a>
+                <a href="/" class="btn btn-sm btn-outline-secondary me-3"><i class="bi bi-house-door"></i> Home</a>
+                <h3 class="fw-bold m-0">Your Order Cart</h3>
+            </div>
+
+            {% if cart_items %}
+                <div class="card glass-card mb-4">
+                    <div class="card-body p-0">
+                        <ul class="list-group list-group-flush" style="border-radius: var(--radius-md); overflow: hidden;">
+                            {% for item in cart_items %}
+                                <li class="list-group-item p-3 d-flex align-items-center">
+                                    <img src="{{ item.image_url }}" alt="{{ item.name }}" class="rounded me-3" style="width: 70px; height: 70px; object-fit: cover;">
+                                    
+                                    <div class="flex-grow-1">
+                                        <h6 class="fw-bold mb-1">{{ item.name }}</h6>
+                                        <span class="text-primary fw-bold">₹{{ item.price }}</span>
+                                    </div>
+                                    
+                                    <div class="d-flex flex-column align-items-end ms-3">
+                                        <div class="d-flex align-items-center mb-2">
+                                            <!-- Decrease Quantity Form -->
+                                            <form method="POST" action="{% url 'customer:cart_update' item.food_id %}">
+                                                {% csrf_token %}
+                                                <input type="hidden" name="action" value="decrease">
+                                                <button type="submit" class="btn btn-sm btn-light border-1 rounded-circle" style="width: 28px; height: 28px; padding: 0;">-</button>
+                                            </form>
+                                            
+                                            <span class="mx-2 fw-bold">{{ item.quantity }}</span>
+                                            
+                                            <!-- Increase Quantity Form -->
+                                            <form method="POST" action="{% url 'customer:cart_update' item.food_id %}">
+                                                {% csrf_token %}
+                                                <input type="hidden" name="action" value="increase">
+                                                <button type="submit" class="btn btn-sm btn-light border-1 rounded-circle" style="width: 28px; height: 28px; padding: 0;">+</button>
+                                            </form>
+                                        </div>
+                                        
+                                        <span class="fw-semibold text-secondary" style="font-size: 0.9rem;">Subtotal: ₹{{ item.subtotal }}</span>
+                                        <a href="{% url 'customer:cart_remove' item.food_id %}" class="text-danger small text-decoration-none mt-1"><i class="bi bi-trash"></i> Remove</a>
+                                    </div>
+                                </li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Checkout Summary Card -->
+                <div class="card glass-card p-4">
+                    <div class="card-body">
+                        <h5 class="fw-bold mb-3">Order Summary</h5>
+                        <div class="d-flex justify-content-between mb-4 fs-5">
+                            <span class="fw-semibold">Total Amount:</span>
+                            <span class="fw-extrabold text-primary">₹{{ total }}</span>
+                        </div>
+                        
+                        <form method="POST" action="{% url 'customer:place_order' %}">
+                            {% csrf_token %}
+                            
+                            {% if table_number %}
+                                <div class="alert alert-success d-flex align-items-center" style="border-radius: var(--radius-sm);">
+                                    <i class="bi bi-geo-alt-fill me-2"></i>
+                                    <div>Ordering for <strong>Table {{ table_number }}</strong>.</div>
+                                </div>
+                            {% else %}
+                                <div class="mb-4">
+                                    <label for="table_id" class="form-label fw-bold"><i class="bi bi-geo-alt text-primary"></i> Select Table Number</label>
+                                    <select name="table_id" id="table_id" required class="form-select border-2" style="border-radius: var(--radius-sm);">
+                                        <option value="" disabled selected>Choose table...</option>
+                                        {% for t in all_tables %}
+                                            <option value="{{ t.id }}">Table {{ t.table_number }}</option>
+                                        {% endfor %}
+                                    </select>
+                                    <div class="form-text text-secondary mt-1">If your table has a QR code, scan it to auto-detect.</div>
+                                </div>
+                            {% endif %}
+                            
+                            <button type="submit" class="btn btn-primary-custom w-100 py-3 fw-bold fs-5">
+                                <i class="bi bi-check2-circle me-2"></i> Place Order
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            {% else %}
+                <div class="card glass-card text-center py-5">
+                    <div class="card-body">
+                        <i class="bi bi-cart-x text-secondary" style="font-size: 4rem;"></i>
+                        <h4 class="fw-bold mt-3">Your cart is empty</h4>
+                        <p class="text-secondary mb-4">Go back to the digital menu and choose something tasty!</p>
+                        <a href="{% url 'customer:menu' %}" class="btn btn-primary-custom">Browse Menu</a>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

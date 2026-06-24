@@ -1,0 +1,189 @@
+{% extends 'admin_panel/base.html' %}
+
+{% block active_dashboard %}active{% endblock %}
+
+{% block admin_content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h2 fw-bold text-dark">Dashboard Analytics</h1>
+    <span class="text-secondary"><i class="bi bi-calendar3"></i> Real-time Overview</span>
+</div>
+
+<!-- Key Performance Indicators (KPIs) -->
+<div class="row row-cols-1 row-cols-md-2 row-cols-xl-3 g-3 mb-4">
+    <!-- Stat Card: Total Orders -->
+    <div class="col">
+        <div class="stat-card d-flex align-items-center h-100">
+            <div class="bg-primary bg-opacity-10 text-primary p-3 rounded-circle me-3">
+                <i class="bi bi-cart-check fs-2"></i>
+            </div>
+            <div>
+                <h6 class="text-secondary fw-semibold m-0">Total Orders</h6>
+                <h2 class="fw-bold m-0 mt-1">{{ total_orders }}</h2>
+                <small class="text-muted">All-time orders placed</small>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Stat Card: Orders Today -->
+    <div class="col">
+        <div class="stat-card d-flex align-items-center h-100">
+            <div class="bg-info bg-opacity-10 text-info p-3 rounded-circle me-3">
+                <i class="bi bi-calendar2-check fs-2"></i>
+            </div>
+            <div>
+                <h6 class="text-secondary fw-semibold m-0">Orders Today</h6>
+                <h2 class="fw-bold m-0 mt-1">{{ orders_today }}</h2>
+                <small class="text-muted">Placed today</small>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Stat Card: Total Revenue -->
+    <div class="col">
+        <div class="stat-card d-flex align-items-center h-100">
+            <div class="bg-success bg-opacity-10 text-success p-3 rounded-circle me-3">
+                <i class="bi bi-cash-stack fs-2"></i>
+            </div>
+            <div>
+                <h6 class="text-secondary fw-semibold m-0">Total Revenue</h6>
+                <h2 class="fw-bold m-0 mt-1">₹{{ total_revenue }}</h2>
+                <small class="text-muted">All-time earnings</small>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Stat Card: Revenue Today -->
+    <div class="col">
+        <div class="stat-card d-flex align-items-center h-100">
+            <div class="bg-success bg-opacity-10 text-success p-3 rounded-circle me-3">
+                <i class="bi bi-currency-dollar fs-2"></i>
+            </div>
+            <div>
+                <h6 class="text-secondary fw-semibold m-0">Revenue Today</h6>
+                <h2 class="fw-bold m-0 mt-1">₹{{ revenue_today }}</h2>
+                <small class="text-muted">Earnings today</small>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Stat Card: Revenue This Month -->
+    <div class="col">
+        <div class="stat-card d-flex align-items-center h-100">
+            <div class="bg-success bg-opacity-10 text-success p-3 rounded-circle me-3">
+                <i class="bi bi-wallet2 fs-2"></i>
+            </div>
+            <div>
+                <h6 class="text-secondary fw-semibold m-0">Revenue This Month</h6>
+                <h2 class="fw-bold m-0 mt-1">₹{{ revenue_month }}</h2>
+                <small class="text-muted">Earnings this month</small>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Stat Card: Table Occupancy -->
+    <div class="col">
+        <div class="stat-card d-flex align-items-center h-100">
+            <div class="bg-warning bg-opacity-10 text-warning p-3 rounded-circle me-3">
+                <i class="bi bi-table fs-2"></i>
+            </div>
+            <div>
+                <h6 class="text-secondary fw-semibold m-0">Table Occupancy</h6>
+                <h3 class="fw-bold m-0 mt-1">
+                    <span class="text-danger">{{ occupied_tables }}</span> / <span class="text-success">{{ available_tables }}</span>
+                </h3>
+                <small class="text-muted">Occupied vs Available (Total: {{ total_tables }})</small>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4">
+    <!-- Left Column: Best Sellers -->
+    <div class="col-xl-6">
+        <div class="card glass-card p-4 h-100">
+            <h5 class="fw-bold mb-3"><i class="bi bi-graph-up-arrow text-primary"></i> Best Selling Dishes</h5>
+            
+            {% if best_sellers %}
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Dish</th>
+                                <th>Price</th>
+                                <th class="text-center">Units Sold</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for dish in best_sellers %}
+                                <tr>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            {% if dish.food__image %}
+                                                <img src="/media/{{ dish.food__image }}" alt="{{ dish.food__name }}" class="rounded me-2" style="width: 40px; height: 40px; object-fit: cover;">
+                                            {% else %}
+                                                <i class="bi bi-egg-fried me-2 fs-4"></i>
+                                            {% endif %}
+                                            <span class="fw-bold">{{ dish.food__name }}</span>
+                                        </div>
+                                    </td>
+                                    <td>₹{{ dish.food__price }}</td>
+                                    <td class="text-center"><span class="badge bg-primary px-3 py-2 rounded-pill fs-7">{{ dish.total_qty }}</span></td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="text-center py-5 text-secondary">
+                    <i class="bi bi-bar-chart fs-1"></i>
+                    <p class="mt-2">No sales data available yet.</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+    
+    <!-- Right Column: Recent Orders -->
+    <div class="col-xl-6">
+        <div class="card glass-card p-4 h-100">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h5 class="fw-bold m-0"><i class="bi bi-receipt text-success"></i> Recent Orders</h5>
+                <a href="{% url 'admin_panel:order_list' %}" class="btn btn-sm btn-outline-custom">View All</a>
+            </div>
+            
+            {% if recent_orders %}
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Order ID</th>
+                                <th>Table</th>
+                                <th>Amount</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for order in recent_orders %}
+                                <tr>
+                                    <td><a href="{% url 'admin_panel:order_detail' order.id %}" class="fw-bold text-decoration-none">#{{ order.id }}</a></td>
+                                    <td>Table {{ order.table.table_number }}</td>
+                                    <td class="fw-semibold text-primary">₹{{ order.total_amount }}</td>
+                                    <td>
+                                        <span class="order-badge {% if order.status == 'Pending' %}badge-pending{% elif order.status == 'Preparing' %}badge-preparing{% elif order.status == 'Ready' %}badge-ready{% elif order.status == 'Served' %}badge-served{% endif %}">
+                                            {{ order.status }}
+                                        </span>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="text-center py-5 text-secondary">
+                    <i class="bi bi-receipt-cutoff fs-1"></i>
+                    <p class="mt-2">No orders placed today.</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
